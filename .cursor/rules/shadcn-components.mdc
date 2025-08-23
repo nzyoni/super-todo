@@ -1,0 +1,20 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+---
+description: Shadcn UI component installation guidelines
+globs: []
+alwaysApply: true
+---
+
+# Shadcn Instructions
+
+Use the latest version of Shadcn to install new components, like this command to add a button component:
+
+```bash
+pnpx shadcn@latest add button
+```
+
+Always use the latest version with `pnpx shadcn@latest` when installing new UI components.
