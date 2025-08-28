@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { todoActions } from '@/lib/todo-store'
 import type { TaskFormData } from '@/lib/types'
+import { triggerTaskCreatedConfetti } from '@/lib/confetti'
 
 interface CreateTaskFormProps {
   onTaskCreated?: () => void
@@ -40,6 +41,9 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
       description: formData.description?.trim() || undefined,
       reporter: formData.reporter.trim(),
     })
+
+    // Trigger confetti celebration!
+    triggerTaskCreatedConfetti()
 
     // Reset form and close modal
     setFormData({
