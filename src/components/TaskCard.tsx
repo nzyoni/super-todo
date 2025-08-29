@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { Task } from '@/lib/types'
 import { todoActions } from '@/lib/todo-store'
+import { TaskTestIds } from '../../test-ids/task'
 
 interface TaskCardProps {
   task: Task
@@ -27,6 +28,7 @@ export function TaskCard({ task }: TaskCardProps) {
       className={cn('transition-all hover:shadow-md', {
         'opacity-75 bg-muted/50': task.completed,
       })}
+      data-testid={TaskTestIds.TASK_CARD}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -36,6 +38,7 @@ export function TaskCard({ task }: TaskCardProps) {
               size="sm"
               onClick={handleToggleCompletion}
               className="p-0 h-6 w-6"
+              data-testid={TaskTestIds.TASK_TOGGLE_BUTTON}
             >
               {task.completed ? (
                 <CheckCircle className="h-5 w-5 text-green-600" />
@@ -52,12 +55,16 @@ export function TaskCard({ task }: TaskCardProps) {
                 to="/task/$taskId"
                 params={{ taskId: task.id }}
                 className="hover:underline"
+                data-testid={TaskTestIds.TASK_TITLE}
               >
                 {task.title}
               </Link>
             </CardTitle>
           </div>
-          <Badge variant={task.completed ? 'secondary' : 'default'}>
+          <Badge
+            variant={task.completed ? 'secondary' : 'default'}
+            data-testid={TaskTestIds.TASK_STATUS_BADGE}
+          >
             {task.completed ? 'Completed' : 'Open'}
           </Badge>
         </div>
@@ -68,6 +75,7 @@ export function TaskCard({ task }: TaskCardProps) {
             className={cn('text-sm text-muted-foreground mb-3', {
               'line-through': task.completed,
             })}
+            data-testid={TaskTestIds.TASK_DESCRIPTION}
           >
             {task.description}
           </p>
@@ -75,7 +83,7 @@ export function TaskCard({ task }: TaskCardProps) {
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <User className="h-3 w-3" />
-            <span>{task.reporter}</span>
+            <span data-testid={TaskTestIds.TASK_REPORTER}>{task.reporter}</span>
           </div>
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
