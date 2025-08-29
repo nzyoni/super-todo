@@ -16,6 +16,7 @@ import {
 import { todoActions } from '@/lib/todo-store'
 import type { TaskFormData } from '@/lib/types'
 import { triggerTaskCreatedConfetti } from '@/lib/confetti'
+import { TaskTestIds } from '../../test-ids/task'
 
 interface CreateTaskFormProps {
   onTaskCreated?: () => void
@@ -80,12 +81,19 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button className="w-full" size="lg">
+        <Button
+          className="w-full"
+          size="lg"
+          data-testid={TaskTestIds.CREATE_TASK_BUTTON}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Create New Task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className="sm:max-w-[425px]"
+        data-testid={TaskTestIds.CREATE_TASK_DIALOG}
+      >
         <DialogHeader>
           <DialogTitle>Create New Task</DialogTitle>
           <DialogDescription>
@@ -100,6 +108,7 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Input
                 id="title"
+                data-testid={TaskTestIds.TASK_TITLE_INPUT}
                 value={formData.title}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -116,6 +125,7 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Textarea
                 id="description"
+                data-testid={TaskTestIds.TASK_DESCRIPTION_INPUT}
                 value={formData.description}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -135,6 +145,7 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Input
                 id="reporter"
+                data-testid={TaskTestIds.TASK_REPORTER_INPUT}
                 value={formData.reporter}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, reporter: e.target.value }))
@@ -146,11 +157,17 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              data-testid={TaskTestIds.CANCEL_TASK_BUTTON}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
+              data-testid={TaskTestIds.SUBMIT_TASK_BUTTON}
               disabled={!formData.title.trim() || !formData.reporter.trim()}
             >
               Create Task

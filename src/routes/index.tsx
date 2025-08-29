@@ -5,6 +5,7 @@ import { TaskCard } from '@/components/TaskCard'
 import { CreateTaskForm } from '@/components/CreateTaskForm'
 import { SearchBar } from '@/components/SearchBar'
 import { todoStore } from '@/lib/todo-store'
+import { TaskTestIds } from '../../test-ids/task'
 
 export const Route = createFileRoute('/')({
   component: TodoHomepage,
@@ -40,7 +41,10 @@ function TodoHomepage() {
         <p className="text-xl text-muted-foreground">
           Organize your tasks efficiently
         </p>
-        <div className="mt-4 text-sm text-muted-foreground">
+        <div
+          className="mt-4 text-sm text-muted-foreground"
+          data-testid={TaskTestIds.TASK_COUNTER}
+        >
           {completedCount} of {totalCount} tasks completed
           {searchQuery && (
             <span className="ml-2 text-primary">
@@ -67,7 +71,10 @@ function TodoHomepage() {
       {/* Tasks */}
       <div className="space-y-6">
         {filteredTasks.length === 0 ? (
-          <div className="text-center py-12">
+          <div
+            className="text-center py-12"
+            data-testid={TaskTestIds.EMPTY_STATE}
+          >
             <CheckSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">
               {searchQuery ? 'No tasks found' : 'No tasks yet'}
@@ -79,7 +86,7 @@ function TodoHomepage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-4" data-testid={TaskTestIds.TASK_LIST}>
             {sortedFilteredTasks.map((task) => (
               <TaskCard key={task.id} task={task} />
             ))}
