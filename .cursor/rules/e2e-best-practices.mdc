@@ -1,0 +1,319 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+---
+
+description: Playwright E2E Testing Rules - Comprehensive guidelines for reliable, maintainable E2E tests
+alwaysApply: false
+
+---
+
+# Playwright E2E Testing Rules
+
+## **Core Testing Philosophy**
+
+- You are a Playwright test generator focused on reliable, maintainable E2E tests
+- **NEVER** generate test code based on scenario alone - always explore first
+- **ALWAYS** use MCP tools to understand the actual application behavior
+- **ITERATIVE** approach: explore → understand → implement → verify
+
+## **Exploration Workflow**
+
+When asked to explore a website:
+
+1. **Navigate** to the specified URL using browser tools
+2. **Explore** 1-2 key functionalities thoroughly
+3. **Document** observed behavior, selectors, and user flows
+4. **Implement** test based on actual exploration findings
+5. **Close** browser when exploration complete
+
+### **Authentication During Exploration**
+
+- **WAIT FOR MANUAL LOGIN**: When encountering login pages during exploration, pause and wait for the user to manually enter credentials
+- **DO NOT AUTOMATE**: Never attempt to automate login during exploration phase
+- **DOCUMENT LOGIN FLOW**: Take note of login elements and flow for future test implementation
+- **RESUME AFTER AUTH**: Continue exploration once user has completed manual authentication
+
+## **E2E Architecture Standards (MANDATORY)**
+
+### **Three-Layer Architecture**
+
+1. **Spec Files**
+   - **EXTREMELY SHORT** - Only high-level actions and assertions
+   - Use page fixtures and component fixtures
+   - No direct locators - delegate to page objects and components
+   - Only contain assertions (`expect()`) and high-level method calls
+   - Example: `await sideNavigation.userMenu.switchOrganization()`
+
+2. **E2E Page Objects** (`pages/*.page.ts`)
+   - Represent actual web application pages
+   - Contain page-specific actions and workflows
+   - Include e2e-components as needed
+   - Handle loading states and page-specific logic
+   - Expose user actions for that particular page
+
+3. **E2E Components** (`components/*.ts`)
+   - Represent reusable UI components from `src/components`
+   - One file per component type
+   - Reusable across multiple pages
+   - Contain component-specific locators and actions
+   - **Include high-level methods** that handle complex workflows internally
+
+### **Component Hierarchy & Relationships**
+
+- **Respect component ownership**:
+- **Access through proper hierarchy**: Use `sideNavigation.userMenu`, not separate page objects
+- **High-level methods**: Components should expose methods like `switchOrganization()` that handle entire workflows
+- **Error handling**: Methods should validate inputs and throw meaningful errors
+
+### **Spec File Best Practices**
+
+```typescript
+// GOOD: Very short, focused test
+test('should switch organizations', async ({ sideNavigation }) => {
+  const initialOrg = await sideNavigation.userMenu.getCurrentOrganization()
+
+  const targetOrg = await sideNavigation.userMenu.switchOrganization()
+
+  await expect.soft(sideNavigation.userMenu.switchOrgLoader).toBeVisible({ timeout: 2000 })
+  await page.waitForNavigation()
+  await sideNavigation.waitForLoad()
+
+  const currentOrg = await sideNavigation.userMenu.getCurrentOrganization()
+  expect(currentOrg).toBe(targetOrg)
+})
+
+// BAD: Too much implementation detail in spec
+test('should switch organizations', async ({ page, sideNavigation }) => {
+  await sideNavigation.userMenu.openMenu()
+  await sideNavigation.userMenu.waitForOrganizationsSection()
+  const orgItems = page.getByRole('menuitem')...
+  // Too much low-level logic
+})
+```
+
+### **Locator Strategy (MANDATORY)**
+
+1. `data-testid` attributes ONLY (`page.getByTestId()`) - **NEVER** use any other locator
+2. If a `data-testid` attribute is missing, add it to the needed component
+3. **ALWAYS** use TestIds enums from `/test-ids` instead of hardcoded strings
+4. Add new test IDs to the appropriate enum in `/test-ids/`
+5. **FORBIDDEN**: `getByText()`, `getByRole()`, `getByLabel()`, `getByPlaceholder()`, CSS selectors
+6. **Exception**: `getByRole()` can be used ONLY when no test ID exists and you cannot add one
+
+### **Test ID Workflow (CRITICAL)**
+
+When adding new `data-testid` attributes:
+
+1. **Add to enum**: Add the test ID to the appropriate enum in `/test-ids`
+2. **Update React component**: Use the enum value in the React component
+3. **Update e2e-component**: Use the enum value in e2e-component locators
+4. **Never use hardcoded strings** for test IDs in any file
+5. **Don't add unused test IDs**: Only add `data-testid` attributes if they will be used in tests
+6. **Update both frontend and E2E**: Ensure test IDs are used consistently in both layers
+
+### **Waiting & Reliability Strategies**
+
+- **Component-specific waiting**: Use `sideNavigation.waitForLoad()` instead of generic `page.waitForLoadState()`
+- **Remove redundant waits**: If component wait handles page readiness, don't add extra page waits
+- **Page reload validation**: Use `await page.waitForNavigation()` to explicitly validate reloads
+- **Optional assertions**: Use `expect.soft()` instead of try-catch for transient elements like loaders
+- **Auto-retrying assertions**: Prefer `expect().toBeVisible()` over manual timeout waits
+
+### **Component Method Design**
+
+```typescript
+// GOOD: High-level method handles entire workflow
+switchOrganization = async (organizationName?: string): Promise<string> => {
+  const availableOrgs = await this.getAvailableOrganizations()
+
+  if (availableOrgs.length === 0) {
+    throw new Error('No organizations available to switch to')
+  }
+
+  const targetOrg = organizationName || availableOrgs[0]
+
+  if (organizationName && !availableOrgs.includes(organizationName)) {
+    throw new Error(`Organization "${organizationName}" not found`)
+  }
+
+  await this.openMenu()
+  await this.waitForOrganizationsSection()
+  await this.clickOrganizationByName(targetOrg)
+
+  return targetOrg
+}
+
+// BAD: Too granular, forces spec to handle implementation
+async openMenu() { ... }
+async clickFirstOrganization() { ... }
+async waitForReload() { ... }
+```
+
+### **Test Structure Template**
+
+```typescript
+test.describe('Feature Name', () => {
+  test.beforeEach(
+    async (
+      { page, sideNavigation, authenticateIfUnauthenticated, organizationId },
+      testInfo,
+    ) => {
+      await authenticateIfUnauthenticated({
+        organizationId,
+        testId: testInfo.testId,
+      })
+      await page.goto('/')
+      await sideNavigation.waitForLoad()
+    },
+  )
+
+  test('should perform specific user action', async ({ sideNavigation }) => {
+    const result = await sideNavigation.component.performAction()
+
+    await expect
+      .soft(sideNavigation.component.transientElement)
+      .toBeVisible({ timeout: 2000 })
+    await page.waitForNavigation() // If reload expected
+    await sideNavigation.waitForLoad()
+
+    expect(result).toBe(expectedValue)
+  })
+})
+```
+
+### **Code Quality Standards**
+
+- **Remove Unused Code**: Always remove unused imports and fixtures
+- **Minimal Comments**: Only comment complex actions, not every step
+- **No test.step()**: Don't use `test.step()` unless explicitly specified
+- **No Tags**: Don't add test tags unless explicitly specified
+- **Single test per workflow**: Combine related assertions rather than multiple tests
+
+### **File Organization**
+
+- **Spec Location**: `/tests/e2e`
+- **Page Objects**: In `/tests/pages/` directory
+- **Components**: In `/tests/components/` directory
+- **Naming**: `feature-name.spec.ts` (kebab-case)
+- **Grouping**: Related tests in same describe block
+
+### **Cross-Platform Compatibility**
+
+- Tests must work on both Linux and Windows
+- Use forward slashes in paths: `path/to/file`
+- Avoid OS-specific assumptions about file handling
+
+## **Fixtures & Reusability**
+
+### **Fixture Usage**
+
+- **ALWAYS** check `/fixtures` directory for existing utilities
+- **ALWAYS** read `test.ts` file to see available fixtures
+- **REUSE** existing page objects, auth helpers, data setup
+- **EXTEND** fixtures rather than duplicating logic
+- **REMOVE UNUSED**: Clean up unused fixture imports and parameters
+- **MINIMAL FIXTURES**: Only import fixtures actually used in the test
+
+## **Assertions & Reliability**
+
+### **Assertion Location Rules (CRITICAL)**
+
+- **ASSERTIONS ONLY IN SPEC FILES**: All `expect()` statements must be in `.spec.ts` files
+- **NEVER in Components/Pages**: Page objects and E2E components must NOT contain assertions
+- **Components Handle State Waiting**: Components must wait for states to be reached using `.waitFor()`, not `expect()`
+- **Return Data**: Components/pages should return data (strings, booleans, elements) for spec files to assert on
+- **Throw Errors**: For validation, components should throw errors, not use assertions
+- **Spec Responsibility**: Spec files handle all verification logic using returned data
+
+```typescript
+// GOOD: Component waits for state, spec file asserts
+// Component method
+async openModal(): Promise<void> {
+  await this.createTaskButton.click()
+  await this.modal.waitFor({ state: 'visible' }) // ✅ Wait for state
+}
+
+async getTaskStatus(): Promise<string> {
+  return await this.statusBadge.textContent() || ''
+}
+
+// Spec file
+await homePage.taskCreationForm.openModal()
+expect(await homePage.taskCreationForm.isModalVisible()).toBe(true)
+
+// BAD: Component contains assertions
+async openModal(): Promise<void> {
+  await this.createTaskButton.click()
+  await expect(this.modal).toBeVisible() // ❌ FORBIDDEN
+}
+
+// BAD: Component doesn't wait for state
+async openModal(): Promise<void> {
+  await this.createTaskButton.click() // ❌ No waiting, unreliable
+}
+```
+
+### **Auto-Retrying Assertions**
+
+- Use `expect()` for all verifications (auto-retries built-in)
+- Prefer `toBeVisible()` over `toHaveCount(1)` for presence
+- Use `toHaveText()` for exact text, `toContainText()` for partial
+- Use `expect.soft()` for optional/transient element checks
+
+### **Navigation & Page Reload Validation**
+
+- **Explicit reload validation**: Use `await page.waitForNavigation()` when expecting page reloads
+- **Component readiness**: Use component-specific `waitForLoad()` methods
+- **Avoid redundant waits**: Don't stack generic page waits with component waits
+
+### **Error Handling**
+
+```typescript
+// Good: Let Playwright retry + explicit navigation wait
+await expect.soft(loader).toBeVisible({ timeout: 2000 })
+await page.waitForNavigation()
+await sideNavigation.waitForLoad()
+
+// Bad: Manual timeout + try-catch
+try {
+  await expect(loader).toBeVisible({ timeout: 2000 })
+} catch {
+  // ignore
+}
+await page.waitForTimeout(3000)
+```
+
+## **Test Execution & Debugging**
+
+### **Development Workflow**
+
+1. **Explore** app behavior using MCP browser tools
+2. **Generate** test based on actual findings
+3. **Execute** test: `npm run test:e2e filename.spec.ts`
+4. **Iterate** until test passes reliably
+5. **Verify** test works on both platforms
+
+## **Required Practices**
+
+- ✅ **Three-Layer Architecture**: Specs, Pages, Components with clear separation
+- ✅ **Assertions Only in Specs**: All `expect()` statements must be in spec files, never in components/pages
+- ✅ **Components Handle State Waiting**: Components use `.waitFor()` to ensure states are reached before returning
+- ✅ **Test ID Consistency**: Use enums in both React components and E2E components
+- ✅ **Component Hierarchy**: Respect ownership (userMenu belongs to sideNavigation)
+- ✅ **High-Level Methods**: Components expose workflow methods, not granular steps
+- ✅ **Short Spec Files**: Maximum 10-20 lines per test, delegate complexity to components
+- ✅ **Proper Waiting**: Component-specific waits, explicit navigation validation
+- ✅ **Optional Assertions**: Use expect.soft() for transient elements
+- ✅ **Clean Code**: Remove unused imports and fixtures
+- ✅ **Minimal Comments**: Only for complex actions, not basic steps
+- ✅ **No Unnecessary Features**: No `test.step()` or tags unless specified
+- ✅ **Descriptive Titles**: Test names explaining user journey
+- ✅ **Appropriate Assertions**: Each user expectation verified
+- ✅ **Test Isolation**: Clean setup/teardown between tests
+- ✅ **Cross-Platform**: Compatible file paths and assumptions
+- ✅ **Reuse Existing**: Use functions under pages/ and components/ directories
+- ✅ **Continuous Improvement**: Update rules based on feedback
