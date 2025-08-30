@@ -27,6 +27,7 @@ export function TaskCard({ task }: TaskCardProps) {
       className={cn('transition-all hover:shadow-md', {
         'opacity-75 bg-muted/50': task.completed,
       })}
+      data-testid="task-card"
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -34,6 +35,7 @@ export function TaskCard({ task }: TaskCardProps) {
             <Button
               variant="ghost"
               size="sm"
+              data-testid="task-card-toggle-completion"
               onClick={handleToggleCompletion}
               className="p-0 h-6 w-6"
             >
@@ -44,6 +46,7 @@ export function TaskCard({ task }: TaskCardProps) {
               )}
             </Button>
             <CardTitle
+              data-testid="task-card-title"
               className={cn('text-lg', {
                 'line-through text-muted-foreground': task.completed,
               })}
@@ -57,7 +60,10 @@ export function TaskCard({ task }: TaskCardProps) {
               </Link>
             </CardTitle>
           </div>
-          <Badge variant={task.completed ? 'secondary' : 'default'}>
+          <Badge
+            variant={task.completed ? 'secondary' : 'default'}
+            data-testid="task-card-status"
+          >
             {task.completed ? 'Completed' : 'Open'}
           </Badge>
         </div>

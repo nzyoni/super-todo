@@ -100,6 +100,7 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Input
                 id="title"
+                data-testid="task-title-input"
                 value={formData.title}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -116,6 +117,7 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Textarea
                 id="description"
+                data-testid="task-description-input"
                 value={formData.description}
                 onChange={(e) =>
                   setFormData((prev) => ({
@@ -135,6 +137,7 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Input
                 id="reporter"
+                data-testid="task-reporter-input"
                 value={formData.reporter}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, reporter: e.target.value }))
@@ -146,11 +149,17 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel}>
+            <Button
+              data-testid="create-task-cancel"
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
+              data-testid="create-task-submit"
               disabled={!formData.title.trim() || !formData.reporter.trim()}
             >
               Create Task
