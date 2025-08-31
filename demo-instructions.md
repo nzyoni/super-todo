@@ -87,6 +87,7 @@ Refactor the Super-Todo test to use contextual Test-ID enums.
   TOGGLE_DONE = 'toggle-done'
 - Replace all hardcoded strings with these enums in pages/components/specs.
 - Never use raw strings for test IDs.
+- Create new test ids if needed
 
 
 

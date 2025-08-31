@@ -137,7 +137,6 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
               </Label>
               <Input
                 id="reporter"
-                data-testid="task-reporter-input"
                 value={formData.reporter}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, reporter: e.target.value }))
