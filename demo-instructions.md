@@ -37,7 +37,7 @@ npx playwright test e2e/add-and-complete.spec.ts --headed
 
 ## Implement Best practices
 
-### 1 Test Ids
+### 1 Test Ids and Page Objects
 
 Rules for Super-Todo tests:
 
@@ -79,7 +79,8 @@ Refactor the previous test to follow the rules:
 
 Refactor the Super-Todo test to use contextual Test-ID enums.
 
-- Create a shared place to store testids enums
+- Create a shared place to store test-ids enums
+- Use the same enum over e2e and the app
 - Enum members for example:
   ADD_INPUT = 'add-todo-input'
   ADD_BUTTON = 'add-todo-button'
