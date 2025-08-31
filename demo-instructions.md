@@ -21,6 +21,20 @@ npx playwright test e2e/add-and-complete.spec.ts --headed
 
 ---
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Implement Best practices
 
 ### 1 Test Ids
@@ -38,6 +52,29 @@ Refactor the previous test to follow the rules:
 - Extract actions into a TodosPage (tests/pages/TodosPage.ts)
 - Save files and run the new spec
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### 2 Centralized Test IDs
 
 Refactor the Super-Todo test to use contextual Test-ID enums.
@@ -50,6 +87,25 @@ Refactor the Super-Todo test to use contextual Test-ID enums.
   TOGGLE_DONE = 'toggle-done'
 - Replace all hardcoded strings with these enums in pages/components/specs.
 - Never use raw strings for test IDs.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### 3 Assertions and Test Structure
 
