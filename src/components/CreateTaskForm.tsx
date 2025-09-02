@@ -149,14 +149,6 @@ export function CreateTaskForm({ onTaskCreated }: CreateTaskFormProps) {
           </div>
           <DialogFooter>
             <Button
-              data-testid="create-task-cancel"
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-            <Button
               type="submit"
               data-testid="create-task-submit"
               disabled={!formData.title.trim() || !formData.reporter.trim()}
